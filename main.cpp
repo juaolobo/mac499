@@ -1,18 +1,20 @@
 #include <iostream>
 #include <algorithm>
-#include <stack>
-#include <limits>
 #include <vector>
-#include "point.hpp"
+#include <utility>
+#include <eigen3/Eigen/Dense>
 #include "lsfit.hpp"
-#include "slice.hpp"
+#include "read_data.hpp"
+#include "constants.hpp"
 
-#define INF numeric_limits<double>::infinity()
 using namespace std;
+using Eigen::MatrixXd;
 
 int main(){
+	
+	MatrixXd a, b;
 
-	Point p(3);
+	read_data("regression.tsv", a, b);
 
 	return 0;
 }

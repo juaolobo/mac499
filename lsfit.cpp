@@ -1,45 +1,69 @@
 #include <iostream>
 #include <vector>
+#include <utility>
 #include <stdlib.h>
+#include <eigen3/Eigen/Dense>
 #include "lsfit.hpp"
-#include "point.hpp"
 
 using namespace std;
+using Eigen::MatrixXd;
 
-LSFit::LSFit(vector<Point> X, vector<Point> y, int epochs, double alpha_) {
+LinearRegression::LinearRegression() {
+	weights = MatrixXd::Random();
+	error = 0;
+}
 
+void LinearRegression::fit(MatrixXd X, MatrixXd y) {
 
-	vector<double> weights(X.size() + 1, 0);
-	Point p(X.size());
-	vector<double> err(X.size(), 0);
+	weights = MatrixXd(X.cols(), y.cols());
+
+	MatrixXd dw = MatrixXd();
+
+	MatrixXd last_err;
+	MatrixXd err;
+
 	bool converged = 0;
 	double alpha = 0.01;
 
-	while (!converged)
+	while (!converged) {
 
-		for (int i = 0; (unsigned int) i < X.size(); i++) {
-			Point x = X[i];
-			Point y = y[i];
+		MatrixXd pred = predict(X);
+		err = pred - y;
 
-			for (int ii = 1; (unsigned int) ii < weights.size(); ii++)
-				p[ii] = weights[0] + x.coordinates[ii]*weights[ii];
+		dw = gradient_descent(X, y, pred);
+		update_params(alpha, dw);
 
-			double err_ = inner_prod(y-p, y-p);
+		MatrixXd err_vec = last_err - err;
+		// cost function
+		double de = (err_vec * err_vec).sum()/(err_vec.cols() * err_vec.rows());
 
-			weights[0] -= alpha * err_;
+		converged = de < 0.001 ? 1 : 0;
+	}
 
-			for (int ii = 1; (unsigned int) ii < weights.size(); ii++)
-				weights[ii] -= alpha * err_ * x.coordinates[ii];
+	error = (err * err).sum()/(err.cols()*err.rows());
 
-			if (abs(err[err.size()-1] - err_) < 0.001)
-				converged = 1;
+}
 
-			err.push_back(err_);
+void LinearRegression::update_params(double alpha, MatrixXd dw) {
 
-		}
+	weights -= alpha * dw;
 
-	for (int i = 0; (unsigned int) i < err.size(); i++)
-		error += err[i]; 
+};
 
+MatrixXd LinearRegression::gradient_descent(MatrixXd X, MatrixXd y, MatrixXd y_pred) {
 
+	MatrixXd err = y_pred - y;
+
+	MatrixXd X_t = X.transpose();
+	MatrixXd dw = X_t * (err);
+
+	return dw;
+	
+}
+
+MatrixXd LinearRegression::predict(MatrixXd X) {
+
+	MatrixXd res = X * weights;
+
+	return res;
 }
