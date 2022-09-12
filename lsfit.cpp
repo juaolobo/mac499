@@ -37,7 +37,7 @@ void LinearRegression::fit(MatrixXd X, MatrixXd y) {
 		// cost function
 		double de = (err_vec * err_vec).sum()/(err_vec.cols() * err_vec.rows());
 
-		converged = de < 0.001 ? 1 : 0;
+		converged = de < 0.01 ? 1 : 0;
 	}
 
 	error = (err * err).sum()/(err.cols()*err.rows());

@@ -5,10 +5,12 @@
 using namespace std;
 using Eigen::MatrixXd;
 
+#define LR 0.01
+#define THRESHOLD 0.01
+
 class LinearRegression {
 
 	public:
-		// constructor implements linear regression by gradient descent
 		LinearRegression();
 		MatrixXd weights;
 		double error;

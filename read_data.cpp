@@ -2,8 +2,6 @@
 #include <vector>
 #include <fstream>
 #include <eigen3/Eigen/Dense>
-#include "point.hpp"
-#include "slice.hpp"
 
 using namespace std;
 using Eigen::RowVectorXd;
