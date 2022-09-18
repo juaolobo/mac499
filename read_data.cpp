@@ -51,8 +51,8 @@ void read_data(string filename, MatrixXd &X, MatrixXd &y) {
 		values = get_values_from_line(line);
 
 		X(line_idx, 0) = 1; // add bias column
-		for(int i = 1; i <= x_dim; i++)
-			X(line_idx, i) = values[i];
+		for(int i = 0; i < x_dim; i++)
+			X(line_idx, i+1) = values[i];
 
 		for(int j = x_dim; j < x_dim + y_dim; j++) {
 			int idx = j - x_dim;
