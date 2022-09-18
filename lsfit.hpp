@@ -5,6 +5,8 @@
 using namespace std;
 using Eigen::MatrixXd;
 
+#define EPOCHS 1e3
+
 class LinearRegression {
 
 	public:

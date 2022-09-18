@@ -12,14 +12,7 @@ using Eigen::MatrixXd;
 using Eigen::seq;
 using Eigen::all;
 
-// OPT[j] is the minimum cost for points p_1, p_2, ..., p_j
-double OPT[N+1];
-// E[i][j] is the minimum error for points p_i, p_i+1, ..., p_j
-double E[N+1][N+1];
-// opt_segment[j] is the 
-int opt_segment[N+1];
-
-int optimal_fit(int j) {
+int optimal_fit(int j, double* OPT, double** E) {
 
 	double tmp, minimum = INF;
 	int k;
@@ -34,27 +27,53 @@ int optimal_fit(int j) {
 	return k;
 }
 
-double calculate_regression(MatrixXd X, MatrixXd y, int C) {
+double segmented_regression(int N, MatrixXd X, MatrixXd y, int C, double* OPT, double** E, int* opt_segment) {
 
-	for (int i = 1; i <= N; i++)
-		for (int j = 1; j <= i; j++) {
-			MatrixXd X_ = X(seq(i, i+j), all);
-			MatrixXd y_ = y(seq(i, i+j), all);
+	cout << "Calculating segmented regression for input data points. (C = " << C << ")" << endl;
+	for (int j = 1; j <= N; j++)
+		for (int i = 1; i <= j; i++) {
 
-			// MatrixXd X_ = slice(X, i, i+j);
-			// MatrixXd y_ = slice(y, i, i+j);
+			int start = i-1;
+			int end = j-1;
 
-			LinearRegression lsqr = LinearRegression();
-			lsqr.fit(X_, y_);
+			MatrixXd X_ = X(seq(start, end), all);
+			MatrixXd y_ = y(seq(start, end), all);
+
+			LinearRegression lsqr = LinearRegression().fit(X_, y_);
 			E[i][j] = lsqr.error;
 		}
 
 	OPT[0] = opt_segment[0] = 0;
 	for (int j = 1; j <= N; j++) {
-		int i = optimal_fit(j);
+		int i = optimal_fit(j, OPT, E);
 		opt_segment[j] = i;
 		OPT[j] = E[i][j] + OPT[i-1] + C;
 	}
-
+	cout << "Total cost of the piece wise approximation (OPT[N]): " << OPT[N] << endl;
 	return OPT[N];
+}
+
+stack<int> reconstruct_solution(int N, double* OPT, double** E, int* opt_segment) {
+
+	stack <int> tmp_segments;
+	int i = N, j = opt_segment[N];
+
+	while (i > 0) {
+		tmp_segments.push(i);
+		tmp_segments.push(j);
+		i = j-1;
+		j = opt_segment[i];
+	}
+
+	// save the solution for returning
+	stack<int> segments = tmp_segments;
+
+	cout << "An optimal solution :" << endl;
+	while (!tmp_segments.empty())	{
+		i = tmp_segments.top(); tmp_segments.pop();
+		j = tmp_segments.top(); tmp_segments.pop();
+		cout << "Segment from points " << i << " to " << j << endl;
+	}
+
+	return segments;
 }

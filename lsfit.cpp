@@ -3,9 +3,8 @@
 #include <utility>
 #include <stdlib.h>
 #include <eigen3/Eigen/Dense>
-#include "lsfit.hpp"
 
-#define EPOCHS 1e3
+#include "lsfit.hpp"
 
 using namespace std;
 using Eigen::MatrixXd;
@@ -38,7 +37,7 @@ LinearRegression LinearRegression::fit(MatrixXd X, MatrixXd y) {
 		de = (err_vec.cwiseAbs()).sum()/(err_vec.cols() * err_vec.rows());
 
 	}
-	cout << "Weights matrix: " << endl << weights << endl;
+	// cout << "Weights matrix: " << endl << weights << endl;
 	error = de;
 
 	return *this;

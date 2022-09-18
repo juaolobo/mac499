@@ -11,6 +11,6 @@ using namespace std;
 using Eigen::VectorXd;
 using Eigen::MatrixXd;
 
-void read_data(string filename, MatrixXd &X, MatrixXd &y);
+int read_data(string filename, MatrixXd &X, MatrixXd &y);
 
 #endif

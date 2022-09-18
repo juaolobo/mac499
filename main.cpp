@@ -1,24 +1,39 @@
 #include <iostream>
 #include <algorithm>
 #include <vector>
+#include <stack>
 #include <utility>
 #include <eigen3/Eigen/Dense>
-#include "lsfit.hpp"
-#include "read_data.hpp"
+
 #include "constants.hpp"
+#include "read_data.hpp"
+#include "lsfit.hpp"
+#include "seg_reg.hpp"
 
 using namespace std;
 using Eigen::MatrixXd;
 
 int main(){
 	
-	MatrixXd a, b;
+	MatrixXd X, y;
 
-	read_data("regression.tsv", a, b);
-	LinearRegression l = LinearRegression().fit(a, b);
+	int n = read_data("regression.tsv", X, y);
 
-	cout << l.score(a, b) << endl;
-	cout << l.error << endl;
+	double OPT[n+1];
+	int opt_segment[n+1];
+
+	double** E = new double* [n+1];
+	for (int i = 0; i <= n; i++)
+		E[i] = new double [n+1];
+
+	double result = segmented_regression(n, X, y, 1.0, OPT, E, opt_segment);
+	
+	stack<int> segments = reconstruct_solution(n, OPT, E, opt_segment);
+
+	for (int i = 0; i < n+1; i++)
+		delete[] E[i];
+
+	delete[] E;
 
 	return 0;
 }

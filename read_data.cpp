@@ -27,7 +27,7 @@ vector<double> get_values_from_line(string line) {
 	return values;
 }
 
-void read_data(string filename, MatrixXd &X, MatrixXd &y) {
+int read_data(string filename, MatrixXd &X, MatrixXd &y) {
 
 	ifstream file(filename);
 
@@ -62,4 +62,5 @@ void read_data(string filename, MatrixXd &X, MatrixXd &y) {
 		line_idx++;
 	}
 
+	return n;
 }
