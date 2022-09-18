@@ -15,6 +15,10 @@ int main(){
 	MatrixXd a, b;
 
 	read_data("regression.tsv", a, b);
+	LinearRegression l = LinearRegression().fit(a, b);
+
+	cout << l.score(a, b) << endl;
+	cout << l.error << endl;
 
 	return 0;
 }

@@ -2,8 +2,17 @@ from sklearn.datasets import make_regression
 import pandas as pd
 import os
 from os.path import exists
+import sys
+	
+if len(sys.argv) < 4:
+	print("Usage: python make_regression.py <x_dim> <y_dim> <n_samples>")
+	exit(0)
 
-X, y = make_regression(n_features=2, n_targets=2, n_samples=10)
+x_dim = int(sys.argv[1])
+y_dim = int(sys.argv[2])
+n = int(sys.argv[3])
+
+X, y = make_regression(n_features=x_dim, n_targets=y_dim, n_samples=n, noise=0.3)
 
 # y = y.reshape(*y.shape, 1)
 print(y)

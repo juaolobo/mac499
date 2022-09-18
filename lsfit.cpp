@@ -5,27 +5,27 @@
 #include <eigen3/Eigen/Dense>
 #include "lsfit.hpp"
 
+#define EPOCHS 1e3
+
 using namespace std;
 using Eigen::MatrixXd;
 
 LinearRegression::LinearRegression() {
-	weights = MatrixXd::Random();
 	error = 0;
 }
 
-void LinearRegression::fit(MatrixXd X, MatrixXd y) {
+LinearRegression LinearRegression::fit(MatrixXd X, MatrixXd y) {
 
 	weights = MatrixXd(X.cols(), y.cols());
+	MatrixXd dw;
 
-	MatrixXd dw = MatrixXd();
-
-	MatrixXd last_err;
+	MatrixXd last_err = MatrixXd::Zero(y.rows(), y.cols());
 	MatrixXd err;
 
-	bool converged = 0;
-	double alpha = 0.01;
+	double alpha = 0.03;
+	double de = 0;
 
-	while (!converged) {
+	for (int i = 0; i < EPOCHS; i++) {
 
 		MatrixXd pred = predict(X);
 		err = pred - y;
@@ -33,32 +33,32 @@ void LinearRegression::fit(MatrixXd X, MatrixXd y) {
 		dw = gradient_descent(X, y, pred);
 		update_params(alpha, dw);
 
-		MatrixXd err_vec = last_err - err;
-		// cost function
-		double de = (err_vec * err_vec).sum()/(err_vec.cols() * err_vec.rows());
+		MatrixXd err_vec = err - last_err;
+		// cost function = matrix norm
+		de = (err_vec.cwiseAbs()).sum()/(err_vec.cols() * err_vec.rows());
 
-		converged = de < 0.01 ? 1 : 0;
 	}
+	cout << "Weights matrix: " << endl << weights << endl;
+	error = de;
 
-	error = (err * err).sum()/(err.cols()*err.rows());
-
+	return *this;
 }
 
-void LinearRegression::update_params(double alpha, MatrixXd dw) {
+LinearRegression LinearRegression::update_params(double alpha, MatrixXd dw) {
 
 	weights -= alpha * dw;
 
-};
+	return *this;
+}
 
 MatrixXd LinearRegression::gradient_descent(MatrixXd X, MatrixXd y, MatrixXd y_pred) {
 
 	MatrixXd err = y_pred - y;
 
 	MatrixXd X_t = X.transpose();
-	MatrixXd dw = X_t * (err);
+	MatrixXd dw = (X_t * err)/(X.cols() * X.rows());
 
 	return dw;
-	
 }
 
 MatrixXd LinearRegression::predict(MatrixXd X) {
@@ -66,4 +66,17 @@ MatrixXd LinearRegression::predict(MatrixXd X) {
 	MatrixXd res = X * weights;
 
 	return res;
+}
+
+double LinearRegression::score(MatrixXd X, MatrixXd y) {
+
+	MatrixXd y_pred = predict(X);
+	MatrixXd diff = y - y_pred;
+	MatrixXd y_mean = y.colwise().mean().replicate(y.rows(), 1);
+	MatrixXd diff_mean = y - y_mean;
+
+	double u = diff.array().square().sum();
+	double v = diff_mean.array().square().sum();
+
+	return (1 - u/v);
 }
