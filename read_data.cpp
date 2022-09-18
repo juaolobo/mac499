@@ -46,8 +46,6 @@ int read_data(string filename, MatrixXd &X, MatrixXd &y) {
 	int line_idx = 0;
 	while(getline(file, line)) {
 
-		RowVectorXd x_point(x_dim), y_point(y_dim); 
-
 		values = get_values_from_line(line);
 
 		X(line_idx, 0) = 1; // add bias column
