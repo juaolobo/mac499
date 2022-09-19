@@ -17,7 +17,7 @@ int main(){
 	
 	MatrixXd X, y;
 
-	int n = read_data("regression.tsv", X, y);
+	int n = read_data("../../data/shipment_sorted.tsv", X, y);
 
 	double OPT[n+1];
 	int opt_segment[n+1];
@@ -26,7 +26,7 @@ int main(){
 	for (int i = 0; i <= n; i++)
 		E[i] = new double [n+1];
 
-	double result = segmented_regression(n, X, y, 1.0, OPT, E, opt_segment);
+	double result = segmented_regression(n, X, y, 0.05, OPT, E, opt_segment);
 	
 	stack<int> segments = reconstruct_solution(n, OPT, E, opt_segment);
 

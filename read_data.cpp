@@ -10,7 +10,6 @@ using Eigen::MatrixXd;
 vector<double> get_values_from_line(string line) {
 
 	vector<double> values;
-
 	int w_size = 0, pos = 0;
 	for (int i = 0; (unsigned int) i < line.size(); i++, w_size++){
 
@@ -42,7 +41,6 @@ int read_data(string filename, MatrixXd &X, MatrixXd &y) {
 	y_dim = (int) values[2];
 	X = MatrixXd(n, x_dim + 1);
 	y = MatrixXd(n, y_dim);
-
 	int line_idx = 0;
 	while(getline(file, line)) {
 
@@ -59,6 +57,8 @@ int read_data(string filename, MatrixXd &X, MatrixXd &y) {
 
 		line_idx++;
 	}
+	cout << X << endl;
+	cout << y << endl;
 
 	return n;
 }

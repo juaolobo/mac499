@@ -4,7 +4,7 @@
 #include <stack>
 
 int optimal_fit(int j, double* OPT, double** E);
-double segmented_regression(int N, MatrixXd X, MatrixXd y, int C, double* OPT, double** E, int* opt_segment);
+double segmented_regression(int N, MatrixXd X, MatrixXd y, double C, double* OPT, double** E, int* opt_segment);
 stack<int> reconstruct_solution(int N, double* OPT, double** E, int* opt_segment);
 
 #endif

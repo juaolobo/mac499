@@ -15,10 +15,10 @@ using Eigen::all;
 int optimal_fit(int j, double* OPT, double** E) {
 
 	double tmp, minimum = INF;
-	int k;
-	for (int i = 1; i <= j; i++){
+	int k = 0;
+	for (int i = 1; i <= j; i++) {
 		tmp = E[i][j] + OPT[i-1];
-		if (minimum > tmp){
+		if (minimum > tmp) {
 			k = i;
 			minimum = tmp;
 		}
@@ -27,7 +27,7 @@ int optimal_fit(int j, double* OPT, double** E) {
 	return k;
 }
 
-double segmented_regression(int N, MatrixXd X, MatrixXd y, int C, double* OPT, double** E, int* opt_segment) {
+double segmented_regression(int N, MatrixXd X, MatrixXd y, double C, double* OPT, double** E, int* opt_segment) {
 
 	cout << "Calculating segmented regression for input data points. (C = " << C << ")" << endl;
 	for (int j = 1; j <= N; j++)
@@ -49,6 +49,7 @@ double segmented_regression(int N, MatrixXd X, MatrixXd y, int C, double* OPT, d
 		opt_segment[j] = i;
 		OPT[j] = E[i][j] + OPT[i-1] + C;
 	}
+
 	cout << "Total cost of the piece wise approximation (OPT[N]): " << OPT[N] << endl;
 	return OPT[N];
 }
