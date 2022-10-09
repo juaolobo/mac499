@@ -17,8 +17,7 @@ int main(){
 	
 	MatrixXd X, y;
 
-	int n = read_data("../../data/shipment_sorted.tsv", X, y);
-
+	int n = read_data("../data/regression.tsv", X, y);
 	double OPT[n+1];
 	int opt_segment[n+1];
 
@@ -28,12 +27,18 @@ int main(){
 
 	double result = segmented_regression(n, X, y, 0.05, OPT, E, opt_segment);
 	
-	stack<int> segments = reconstruct_solution(n, OPT, E, opt_segment);
+	vector<MatrixXd> pieces = reconstruct_solution(X, y, n, OPT, E, opt_segment);
+
+	for (int i = 0; i < pieces.size(); i++)
+		cout << pieces[i] << endl;
 
 	for (int i = 0; i < n+1; i++)
 		delete[] E[i];
 
 	delete[] E;
+
+	// bugged
+	MatrixXd Z = simplex_segmentation_2D(pieces[1], X, y, 1, 2);
 
 	return 0;
 }

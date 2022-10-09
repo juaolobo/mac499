@@ -21,6 +21,9 @@ class LinearRegression {
 		double score(MatrixXd X, MatrixXd y);
 		MatrixXd solve(MatrixXd X, MatrixXd y);
 
+	private:
+		MatrixXd rational_coefs(int N);
+
 };
 
 #endif

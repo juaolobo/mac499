@@ -1,8 +1,9 @@
 import pandas as pd
 from sklearn.linear_model import LinearRegression
 import matplotlib.pyplot as plt
+import numpy as np
 
-filename = '../../data/shipment.tsv'
+filename = '../data/regression.tsv'
 with open(filename) as f:
 	values = [int(v) for v in f.readline().split("\t")]
 	x_len = values[1]
@@ -16,8 +17,10 @@ print(data)
 data.plot(x='x', y='y', kind='scatter')
 plt.show()
 
-X = data[[i for i in range(x_len)]]
-y = data[[i + x_len for i in range(y_len)]]
+reg = LinearRegression().fit(data['x'].values.reshape(-1, 1), data['y'])
 
-reg = LinearRegression().fit(X, y)
+x = np.linspace(-3, 1)
+y = reg.predict(x.reshape(-1, 1))
 print(reg.coef_, reg.intercept_)
+plt.scatter(x, y)
+plt.show()

@@ -42,9 +42,14 @@ int read_data(string filename, MatrixXd &X, MatrixXd &y) {
 	X = MatrixXd(n, x_dim + 1);
 	y = MatrixXd(n, y_dim);
 	int line_idx = 0;
+
+	cout << x_dim << endl;
+	cout << y_dim << endl;
+
 	while(getline(file, line)) {
 
 		values = get_values_from_line(line);
+
 
 		X(line_idx, 0) = 1; // add bias column
 		for(int i = 0; i < x_dim; i++)
@@ -58,7 +63,7 @@ int read_data(string filename, MatrixXd &X, MatrixXd &y) {
 		line_idx++;
 	}
 	cout << X << endl;
-	cout << y << endl;
+	// cout << y << endl;
 
 	return n;
 }
