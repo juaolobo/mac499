@@ -189,23 +189,25 @@ MatrixXd simplex_segmentation_2D(MatrixXd weights, MatrixXd X, MatrixXd y, int s
 MatrixXd points_to_plane_2D(MatrixXd X, MatrixXd y) {
 
 	Vector3d p1;
-	p1(0) = y(0);
-	p1(seq(1, last)) = X(0, seq(1, last));
+	p1(seq(0, last-1)) = X(0, seq(1, last));
+	p1(2) = y(0);
 
 	Vector3d p2;
-	p2(0) = y(1);
-	p2(seq(1, last)) = X(1, seq(1, last));
+	p2(seq(0, last-1)) = X(1, seq(1, last));
+	p2(2) = y(1);
 
 	Vector3d p3;
-	p3(0) = y(2);
-	p3(seq(1, last)) = X(2, seq(1, last));
+	p3(seq(0, last-1)) = X(2, seq(1, last));
+	p3(2) = y(2);
 
 	Vector3d v = p3 - p1;
 	Vector3d w = p2 - p1;
 
+	// c = a, b, c
 	Vector3d c = v.cross(w);
 	double d = c.dot(p3);
 
+	// z = (- ax - by + d)/c
 	MatrixXd z(c.size(), 1);
 	z << d, -c(0), -c(1);
 	z = z/c(2);
