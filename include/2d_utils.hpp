@@ -11,7 +11,7 @@ using Eigen::all;
 using Eigen::last;
 using Eigen::seq;
 
-MatrixXd simplex_segmentation_2D(MatrixXd weights, MatrixXd X, MatrixXd y, int start, int end);
+MatrixXd simplex_segmentation_2D(MatrixXd left_weights, MatrixXd right_weights, MatrixXd X, MatrixXd y, int start, int end);
 MatrixXd points_to_plane_2D(MatrixXd X, MatrixXd y);
 vector<MatrixXd> partition_domain_2D(MatrixXd X, vector<int> segments);
 

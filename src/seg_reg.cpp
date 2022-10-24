@@ -6,6 +6,7 @@
 #include "lsfit.hpp"
 #include "seg_reg.hpp"
 #include "constants.hpp"
+#include "2d_utils.hpp"
 
 using namespace std;
 using Eigen::VectorXd;
@@ -33,7 +34,7 @@ int optimal_fit(int j, double* OPT, double** E) {
 double segmented_regression(int N, MatrixXd X, MatrixXd y, double C, double* OPT, double** E, int* opt_segment) {
 
 	cout << "Calculating segmented regression for input data points. (C = " << C << ")" << endl;
-	for (int j = 1; j <= N; j++)
+	for (int j = 1; j <= N; j++){
 		for (int i = 1; i <= j; i++) {
 
 			int start = i-1;
@@ -45,7 +46,9 @@ double segmented_regression(int N, MatrixXd X, MatrixXd y, double C, double* OPT
 			LinearRegression lsqr = LinearRegression().fit(X_, y_);
 			E[i][j] = lsqr.error;
 		}
+	}
 
+	cout << "Calculated all possible errors" << endl;
 	OPT[0] = opt_segment[0] = 0;
 	for (int j = 1; j <= N; j++) {
 		int i = optimal_fit(j, OPT, E);
@@ -54,6 +57,7 @@ double segmented_regression(int N, MatrixXd X, MatrixXd y, double C, double* OPT
 	}
 
 	cout << "Total cost of the piece wise approximation (OPT[N]): " << OPT[N] << endl;
+	cout << opt_segment[N] << endl;
 	return OPT[N];
 }
 
@@ -69,6 +73,7 @@ void reconstruct_solution(MatrixXd X, MatrixXd y, vector<MatrixXd> &pieces, vect
 							int n, double* OPT, double** E, int* opt_segment) {
 
 	stack<int> segments_stack;
+	// vector<MatrixXd> regression_pieces;
 	int i = n, j = opt_segment[n];
 
 	while (i > 0) {
@@ -78,7 +83,7 @@ void reconstruct_solution(MatrixXd X, MatrixXd y, vector<MatrixXd> &pieces, vect
 		j = opt_segment[i];
 	}
 
-	int last_j = -1, start, end, n_pieces = 0;
+	int last_j = -1, start, end;
 
 	cout << "An optimal solution :" << endl;
 
@@ -87,30 +92,30 @@ void reconstruct_solution(MatrixXd X, MatrixXd y, vector<MatrixXd> &pieces, vect
 
 		i = segments_stack.top(); segments_stack.pop();
 		j = segments_stack.top(); segments_stack.pop();
-
-		if (last_j >= 0) {
-			start = last_j - 1;
-			end = i-1;
-			// MatrixXd piece = get_piece(X, y, start, end);
-			MatrixXd piece1 = simplex_segmentation_2D(pieces[n_pieces], X, y, start, end);
-			MatrixXd piece2 = simplex_segmentation_2D(pieces[n_pieces], X, y, end, start);
-			pieces.push_back(piece);
-			cout << "Simplex Segments from points " << last_j << " to " << i << endl;
-			cout << "piece: " << piece << endl;
-			segments.push_back(end);
-		}
-
-
 		start = i-1;
 		end = j-1;
 		MatrixXd piece = get_piece(X, y, start, end);
 		pieces.push_back(piece);
 		segments.push_back(end);
 
+
+		if (pieces.size() > 1) {
+			start = last_j-1;
+			end = i-1;
+			MatrixXd piece1 = simplex_segmentation_2D(pieces[pieces.size()-2], pieces[pieces.size()-1], X, y, start, end);
+			MatrixXd piece2 = simplex_segmentation_2D(pieces[pieces.size()-2], pieces[pieces.size()-1], X, y, end, start);
+			pieces.push_back(piece1);
+			pieces.push_back(piece2);
+			cout << "Simplex Segments from points " << last_j << " to " << i << endl;
+			// cout << "piece: " << piece1 << endl;
+			// cout << "piece: " << piece2 << endl;
+			segments.push_back(end);
+		}
+
 		cout << "Segment from points " << i << " to " << j << endl;
-		cout << "piece: " << piece << endl;
+		// cout << "piece: " << piece << endl;
+
 		last_j = j;
-		n_pieces ++;
 
 	}
 
@@ -160,23 +165,17 @@ void regression_to_pwl(vector<MatrixXd> pieces, vector<MatrixXd> boundaries, int
 	string filename = "function.pwl";
 	ofstream file(filename);
 	file << "pwl" << endl;
+	file << endl;
 
 	for (int b = 0; (unsigned int) b < boundaries.size(); b++){
 
-		file << "b";
-		if (boundaries[b].size() > 1) {
-			for (int i = 0; i < boundaries[b].size(); i++)
-				file << boundaries[b](i);
-
-			file << "0" << endl;
+		file << "b ";
+		for (int i = 0; i < boundaries[b].size(); i++){
+			file << boundaries[b](i) << " ";
 		}
-
-		else {
-			file << "0";
-			file << boundaries[b];
-			file << "0" << endl;
-		}
+		file << endl;
 	}
+	file << endl;
 
 	for (int k = 0; (unsigned int) k < pieces.size(); k++){
 
@@ -193,5 +192,11 @@ void regression_to_pwl(vector<MatrixXd> pieces, vector<MatrixXd> boundaries, int
 					file << " " << fraction.first << " " << fraction.second;
 		}
 		file << endl;
+
+		int b = k+1;
+		file << "g " << b << endl;
+		file << "l " << b+1 << endl;
+		file << endl;
 	}
+
 }

@@ -10,6 +10,24 @@ from mpl_toolkits import mplot3d
 import sys
 import argparse
 
+def print_np(arr):
+	s = f''
+	for i in arr[:-1]:
+		s += str(i) + '\t'
+
+	s += str(arr[-1])
+	return s
+
+def save_training_data(path, X, y):
+
+	X = np.array(sorted(X, key=lambda x: x[0]))
+	y = np.array(sorted(y))
+	with open(path, 'w') as f:
+		f.write(str(X.shape[0]) + '\t' + str(X.shape[1]) + '\t' + str(y.shape[1]) + '\n')
+		for i in range(len(X)):
+			data = print_np(X[i]) + '\t' + print_np(y[i]) + '\n'
+			f.write(data)
+
 class XORNet(nn.Module):
 	def __init__(self):
 		super(XORNet, self).__init__()
@@ -110,19 +128,4 @@ if __name__ == "__main__":
 
 		plt.show()
 
-	with open("../data/xor_nn_data.tsv", "w") as f:
-
-		def print_np(arr):
-			s = f''
-			for i in arr[:-1]:
-				s += str(i) + '\t'
-
-			s += str(arr[-1])
-			return s
-
-		f.write(str(X.shape[0]) + '\t' + str(X.shape[1]) + '\t' + str(yhat.shape[1]) + '\n')
-
-		for i in range(len(X)):
-			data = print_np(X[i]) + '\t' + print_np(yhat[i]) + '\n'
-			f.write(data)		
-
+	save_training_data("../data/xor_nn_data.tsv", X, yhat)

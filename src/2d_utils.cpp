@@ -1,32 +1,40 @@
-#include "2d_utils.hpp"
 #include <eigen3/Eigen/Dense>
 #include <vector>
+#include <iostream>
+#include "2d_utils.hpp"
 
 using namespace std;
 
-MatrixXd simplex_segmentation_2D(MatrixXd weights, MatrixXd X, MatrixXd y, int start, int end) {
+MatrixXd simplex_segmentation_2D(MatrixXd left_weights, MatrixXd right_weights, MatrixXd X, MatrixXd y, int start, int end) {
 
 	/* 
 	p1, p2, p3 in [0,1]^2
 	p1 = (X(start), 0); p2 = (X(start), 1); p3 = (X(end), 0)
-	if start > end, we are calling for the bottom half simplex
+	if start < end, we are calling for the bottom half simplex
 	else we want the top half one
 	in other words, first case we want two point with x2 = 0
 	and in the second case we want two points with x2 = 1
 	*/
 	MatrixXd p1 = X(start, all); p1(2) = 0;
 	MatrixXd p2 = X(start, all); p2(2) = 1;
-
-	if (start > end)
-		MatrixXd p3 = X(end, all); p3(2) = 0;
-
-	else if (start < end) 
-		MatrixXd p3 = X(end, all); p3(2) = 1;		
+	MatrixXd p3 = X(end, all); p3(2) = start < end ? 0 : 1;
 
 	MatrixXd points(3, X.cols());
 	points << p1, p2, p3;
+	MatrixXd preds1;
+	MatrixXd preds2;
+	if (start < end) {
+		preds1 = points(seq(0, 1), all) * left_weights;
+		preds2 = points(2, all) * right_weights;
+	}
+	else {
+		preds1 = points(seq(0, 1), all) * right_weights;
+		preds2 = points(2, all) * left_weights;		
+	}
 
-	MatrixXd preds = points * weights;
+	MatrixXd preds(preds1.rows() + preds2.rows(), 1);
+
+	preds << preds1, preds2;	
 
 	MatrixXd Z = points_to_plane_2D(points, preds);
 
@@ -52,7 +60,7 @@ MatrixXd points_to_plane_2D(MatrixXd X, MatrixXd y) {
 
 	// c = a, b, c
 	Vector3d c = v.cross(w);
-	double d = c.dot(p3);
+	double d = c.dot(p1);
 
 	// z = f(x, y) = (- ax - by + d)/c
 	MatrixXd z(c.size(), 1);
@@ -65,17 +73,16 @@ MatrixXd points_to_plane_2D(MatrixXd X, MatrixXd y) {
 vector<MatrixXd> partition_domain_2D(MatrixXd X, vector<int> segments) {
 
 	vector<MatrixXd> boundaries;
-	MatrixXd zero(1,1);
-	zero << 0;
+	MatrixXd zero(3,1);
+	zero << 0, 1, 0;
 	boundaries.push_back(zero);
-
 	// boundaries: 1 point should be greater than boundary i and less than boundary i+1
 
-	for (int i = 0; i < segments.size(); i++){
+	for (int i = 0; (unsigned int) i < segments.size(); i++){
 
 		MatrixXd p = X(segments[i], all);
 
-		if (segments[i] - segments[i-1] == 1){
+		if (i > 0){
 
 			/* partition by simplex
 			in the 2D case we have a line which passes through 
@@ -98,17 +105,20 @@ vector<MatrixXd> partition_domain_2D(MatrixXd X, vector<int> segments) {
 			double slope = slope_vector(0)/slope_vector(1);
 			MatrixXd line(3, 1);
 			double c = q(0) - q(1)*slope;
-
+		
 			// o_0 + o_1 x_1 + o_2 x_2
 			line << c, slope, 1;
 			boundaries.push_back(line);
 		}
 
 		// 0-th column is a bias column for regression
-		MatrixXd x_coord;
-		x_coord << p(1);
+		MatrixXd x_coord(3,1);
+		x_coord << p(1), 1, 0;
 		boundaries.push_back(x_coord);
 	}
+	MatrixXd one(3,1);
+	one << 1, 1, 0;
+	boundaries.push_back(one);
 
 	return boundaries;
 

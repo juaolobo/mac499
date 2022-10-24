@@ -43,8 +43,8 @@ int read_data(string filename, MatrixXd &X, MatrixXd &y) {
 	y = MatrixXd(n, y_dim);
 	int line_idx = 0;
 
-	cout << x_dim << endl;
-	cout << y_dim << endl;
+	// cout << x_dim << endl;
+	// cout << y_dim << endl;
 
 	while(getline(file, line)) {
 
@@ -62,7 +62,7 @@ int read_data(string filename, MatrixXd &X, MatrixXd &y) {
 
 		line_idx++;
 	}
-	cout << X << endl;
+	// cout << X << endl;
 	// cout << y << endl;
 
 	return n;

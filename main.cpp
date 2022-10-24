@@ -24,7 +24,7 @@ int main(int argc, char** argv){
 		cout << cost << endl;
 	}
 
-	int n = read_data("../data/regression.tsv", X, y);
+	int n = read_data("data/xor_nn_data.tsv", X, y);
 	double OPT[n+1];
 	int opt_segment[n+1];
 
@@ -38,13 +38,13 @@ int main(int argc, char** argv){
 	vector<int> segments;
 	reconstruct_solution(X, y, pieces, segments, n, OPT, E, opt_segment);
 
-	// vector<MatrixXd> boundaries = partition_domain_2D(X, segments);
+	vector<MatrixXd> boundaries = partition_domain_2D(X, segments);
 
 	for (int i = 0; i < n+1; i++)
 		delete[] E[i];
 
 	delete[] E;
 
-	// regression_to_pwl(pieces, boundaries, 10000);
+	regression_to_pwl(pieces, boundaries, 5000);
 	return 0;
 }
