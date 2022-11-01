@@ -73,7 +73,7 @@ void reconstruct_solution(MatrixXd X, MatrixXd y, vector<MatrixXd> &pieces, vect
 							int n, double* OPT, double** E, int* opt_segment) {
 
 	stack<int> segments_stack;
-	// vector<MatrixXd> regression_pieces;
+	vector<MatrixXd> regression_pieces;
 	int i = n, j = opt_segment[n];
 
 	while (i > 0) {
@@ -95,23 +95,22 @@ void reconstruct_solution(MatrixXd X, MatrixXd y, vector<MatrixXd> &pieces, vect
 		start = i-1;
 		end = j-1;
 		MatrixXd piece = get_piece(X, y, start, end);
-		pieces.push_back(piece);
-		segments.push_back(end);
 
-
-		if (pieces.size() > 1) {
-			start = last_j-1;
-			end = i-1;
-			MatrixXd piece1 = simplex_segmentation_2D(pieces[pieces.size()-2], pieces[pieces.size()-1], X, y, start, end);
-			MatrixXd piece2 = simplex_segmentation_2D(pieces[pieces.size()-2], pieces[pieces.size()-1], X, y, end, start);
+		if (pieces.size() > 0) {
+			int start_ = last_j-1;
+			int end_ = i-1;
+			MatrixXd piece1 = simplex_segmentation_2D(pieces[pieces.size()-1], piece, X, y, start_, end_);
+			MatrixXd piece2 = simplex_segmentation_2D(pieces[pieces.size()-1], piece, X, y, end_, start_);
 			pieces.push_back(piece1);
 			pieces.push_back(piece2);
 			cout << "Simplex Segments from points " << last_j << " to " << i << endl;
 			// cout << "piece: " << piece1 << endl;
 			// cout << "piece: " << piece2 << endl;
-			segments.push_back(end);
+			segments.push_back(end_);
 		}
 
+		pieces.push_back(piece);
+		segments.push_back(end);
 		cout << "Segment from points " << i << " to " << j << endl;
 		// cout << "piece: " << piece << endl;
 

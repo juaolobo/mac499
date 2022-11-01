@@ -23,6 +23,7 @@ MatrixXd simplex_segmentation_2D(MatrixXd left_weights, MatrixXd right_weights, 
 	points << p1, p2, p3;
 	MatrixXd preds1;
 	MatrixXd preds2;
+
 	if (start < end) {
 		preds1 = points(seq(0, 1), all) * left_weights;
 		preds2 = points(2, all) * right_weights;
@@ -73,16 +74,12 @@ MatrixXd points_to_plane_2D(MatrixXd X, MatrixXd y) {
 vector<MatrixXd> partition_domain_2D(MatrixXd X, vector<int> segments) {
 
 	vector<MatrixXd> boundaries;
-	MatrixXd zero(3,1);
-	zero << 0, 1, 0;
-	boundaries.push_back(zero);
 	// boundaries: 1 point should be greater than boundary i and less than boundary i+1
-
 	for (int i = 0; (unsigned int) i < segments.size(); i++){
 
 		MatrixXd p = X(segments[i], all);
 
-		if (i > 0){
+		if (i%2 == 1){
 
 			/* partition by simplex
 			in the 2D case we have a line which passes through 
@@ -102,7 +99,7 @@ vector<MatrixXd> partition_domain_2D(MatrixXd X, vector<int> segments) {
 
 			MatrixXd slope_vector = q - q2;
 
-			double slope = slope_vector(0)/slope_vector(1);
+			double slope = slope_vector(1)/slope_vector(0);
 			MatrixXd line(3, 1);
 			double c = q(0) - q(1)*slope;
 		
@@ -111,15 +108,12 @@ vector<MatrixXd> partition_domain_2D(MatrixXd X, vector<int> segments) {
 			boundaries.push_back(line);
 		}
 
-		// 0-th column is a bias column for regression
 		MatrixXd x_coord(3,1);
 		x_coord << p(1), 1, 0;
 		boundaries.push_back(x_coord);
-	}
-	MatrixXd one(3,1);
-	one << 1, 1, 0;
-	boundaries.push_back(one);
 
+	}
+	
 	return boundaries;
 
 }

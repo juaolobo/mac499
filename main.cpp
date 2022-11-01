@@ -19,12 +19,14 @@ int main(int argc, char** argv){
 	MatrixXd X, y;
 
 	double cost = 0.1;
-	if (argc > 1) {
+	string filename = "data/xor_nn_data.tsv";
+	if (argc > 1)
 		cost = stof(argv[1]);
-		cout << cost << endl;
-	}
+	
+	if(argc > 2)
+		filename = argv[2];
 
-	int n = read_data("data/xor_nn_data.tsv", X, y);
+	int n = read_data(filename, X, y);
 	double OPT[n+1];
 	int opt_segment[n+1];
 

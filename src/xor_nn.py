@@ -90,29 +90,18 @@ def load(PATH):
 
 	return model
 
-if __name__ == "__main__":
-
-	args = argparse.ArgumentParser()
-
-	# Add arguments to the parser
-	args.add_argument("-t", "--train", required=False,
-	   help="specify if we want to train the model or not")
-
-	args.add_argument("-p", "--plot", required=False,
-	   help="specify if you want to plot the function achieved by the model or not")
-
-	args.add_argument("-f", "--file", required=True,
-	   help="where to save or load the model from")
-
-	args = vars(args.parse_args())
+def main(args):
 	PATH = args['file']
 
 	if args['train']:
 		train([PATH, args['train']])
 
 	model = load(PATH)
-
-	X = torch.Tensor(np.random.rand(1000, 2))
+	n = int(args['n_samples'])
+	Xdata = np.random.rand(n, 2)
+	Xdata[0][0] = 0.
+	Xdata[-1][0] = 1.
+	X = torch.Tensor(Xdata)
 	yhat = model.forward(X)
 
 	X = X.numpy()
@@ -128,4 +117,30 @@ if __name__ == "__main__":
 
 		plt.show()
 
-	save_training_data("../data/xor_nn_data.tsv", X, yhat)
+	if args['train'] or args['save']:
+		save_training_data("data/xor_nn_data.tsv", X, yhat)
+
+
+if __name__ == "__main__":
+
+	args = argparse.ArgumentParser()
+
+	# Add arguments to the parser
+	args.add_argument("-t", "--train", required=False,
+	   help="specify if we want to train the model or not")
+
+	args.add_argument("-n", "--n_samples", required=False,
+	   help="specify how many points to sample from the network")
+
+	args.add_argument("-p", "--plot", required=False, nargs='?', const=1,
+	   help="specify if you want to plot the function achieved by the model or not")
+
+	args.add_argument("-f", "--file", required=True,
+	   help="where to save or load the model from")
+
+	args.add_argument("-s", "--save", required=True, nargs='?', const=1,
+	   help="if you want to save training data")
+
+	args = vars(args.parse_args())
+
+	main(args)

@@ -6,8 +6,8 @@ def print_np(arr):
 	s += str(arr[-1])
 	return s
 
-def save_training_data(path):
-	
+def save_training_data(path, X, y):
+
 	with open(path, 'w') as f:
 		f.write(str(X.shape[0]) + '\t' + str(X.shape[1]) + '\t' + str(y.shape[1]) + '\n')
 		for i in range(len(X)):
