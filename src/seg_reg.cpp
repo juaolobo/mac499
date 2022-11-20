@@ -69,11 +69,12 @@ MatrixXd get_piece(MatrixXd X, MatrixXd y, int start, int end) {
 	return LinearRegression().fit(X_, y_).weights;
 }
 
-void reconstruct_solution(MatrixXd X, MatrixXd y, vector<MatrixXd> &pieces, vector<int> &segments,
+vector<bool> reconstruct_solution(MatrixXd X, MatrixXd y, vector<MatrixXd> &pieces, vector<int> &segments,
 							int n, double* OPT, double** E, int* opt_segment) {
 
 	stack<int> segments_stack;
 	vector<MatrixXd> regression_pieces;
+	vector<bool> is_simplex;
 	int i = n, j = opt_segment[n];
 
 	while (i > 0) {
@@ -107,16 +108,21 @@ void reconstruct_solution(MatrixXd X, MatrixXd y, vector<MatrixXd> &pieces, vect
 			// cout << "piece: " << piece1 << endl;
 			// cout << "piece: " << piece2 << endl;
 			segments.push_back(end_);
+			is_simplex.push_back(1);
+			is_simplex.push_back(1);
 		}
 
 		pieces.push_back(piece);
 		segments.push_back(end);
+		is_simplex.push_back(0);
 		cout << "Segment from points " << i << " to " << j << endl;
 		// cout << "piece: " << piece << endl;
 
 		last_j = j;
 
 	}
+
+	return is_simplex;
 
 }
 
@@ -159,7 +165,7 @@ pair<int, int> double_to_fraction(double x, int N) {
 		return make_pair(a, b);
 }
 
-void regression_to_pwl(vector<MatrixXd> pieces, vector<MatrixXd> boundaries, int N) {
+void regression_to_pwl(vector<MatrixXd> pieces, vector<MatrixXd> boundaries, vector<bool> simplex_id, int N) {
 
 	string filename = "function.pwl";
 	ofstream file(filename);
@@ -170,12 +176,15 @@ void regression_to_pwl(vector<MatrixXd> pieces, vector<MatrixXd> boundaries, int
 
 		file << "b ";
 		for (int i = 0; i < boundaries[b].size(); i++){
-			file << boundaries[b](i) << " ";
+			file << boundaries[b](i);
+			if (i < boundaries[b].size()-1)
+				file << " ";
 		}
 		file << endl;
 	}
 	file << endl;
 
+	int b = 1;
 	for (int k = 0; (unsigned int) k < pieces.size(); k++){
 
 		MatrixXd weights = pieces[k];
@@ -192,10 +201,31 @@ void regression_to_pwl(vector<MatrixXd> pieces, vector<MatrixXd> boundaries, int
 		}
 		file << endl;
 
-		int b = k+1;
-		file << "g " << b << endl;
-		file << "l " << b+1 << endl;
+		/* 
+		if the boundary is a simplex boundary, 
+		the left side should be greater than 0 and right side should be lesser than 0
+		if not, it should be greater than the x1 before and lesser than the next x1
+		*/
+
+		if (!simplex_id[k]) {
+			file << "g " << b << endl;
+			file << "l " << b+1 << endl;
+			b++;
+		}
+
+		else {
+			file << "g " << b << endl;
+			file << "l " << b+2 << endl;
+			if (simplex_id[k-1]) {
+				file << "l " << b+1 << endl;
+				b += 2;
+			}
+
+			else
+				file << "g " << b+1 << endl;
+		}
 		file << endl;
+
 	}
 
 }

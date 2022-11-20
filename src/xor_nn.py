@@ -10,6 +10,45 @@ from mpl_toolkits import mplot3d
 import sys
 import argparse
 
+
+def plot_decision_boundary(model: torch.nn.Module, X: torch.Tensor, y: torch.Tensor):
+    """Plots decision boundaries of model predicting on X in comparison to y.
+    Source - https://madewithml.com/courses/foundations/neural-networks/ (with modifications)
+    """
+    # Put everything to CPU (works better with NumPy + Matplotlib)
+    model.to("cpu")
+    X, y = X.to("cpu"), y.to("cpu")
+
+    # Setup prediction boundaries and grid
+    x_min, x_max = X[:, 0].min() - 0.1, X[:, 0].max() + 0.1
+    y_min, y_max = X[:, 1].min() - 0.1, X[:, 1].max() + 0.1
+    xx, yy = np.meshgrid(np.linspace(x_min, x_max, 101), np.linspace(y_min, y_max, 101))
+
+    # Make features
+    X_to_pred_on = torch.from_numpy(np.column_stack((xx.ravel(), yy.ravel()))).float()
+
+    # Make predictions
+    model.eval()
+    with torch.inference_mode():
+        y_logits = model(X_to_pred_on)
+
+    # Test for multi-class or binary and adjust logits to prediction labels
+    if len(torch.unique(y)) > 2:
+        y_pred = torch.softmax(y_logits, dim=1).argmax(dim=1)  # mutli-class
+    else:
+        y_pred = torch.round(torch.sigmoid(y_logits))  # binary
+
+    # Reshape preds and plot
+    y_pred = y_pred.reshape(xx.shape).detach().numpy()
+
+    plt.contourf(xx, yy, y_pred, cmap=plt.cm.RdYlBu, alpha=0.7)
+    plt.scatter(X[:, 0], X[:, 1], c=[int(i) for i in y], s=40, cmap=plt.cm.RdYlBu)
+    plt.xlabel("$X_1$")
+    plt.ylabel("$X_2$")
+    plt.xlim(xx.min(), xx.max())
+    plt.ylim(yy.min(), yy.max())
+    plt.show()
+
 def print_np(arr):
 	s = f''
 	for i in arr[:-1]:
@@ -34,11 +73,14 @@ class XORNet(nn.Module):
 		self.layers = nn.Sequential(
 						nn.Linear(2, 2),
 						nn.Sigmoid(),
-						nn.Linear(2, 1)
+						nn.Linear(2, 1),
 						)
 
 	def forward(self, x):
 		return self.layers(x)
+
+	def predict(self, x):
+		return torch.round(torch.sigmoid(self.forward(x)))
 
 def train(argv):
 
@@ -46,7 +88,7 @@ def train(argv):
 	epochs = int(argv[1])
 
 	xor_nn = XORNet()
-	loss_fn = torch.nn.MSELoss()
+	loss_fn = torch.nn.BCEWithLogitsLoss()
 	optimizer = torch.optim.Adam(xor_nn.parameters(), lr=0.03)
 
 	X = torch.Tensor([
@@ -66,6 +108,7 @@ def train(argv):
 	total_loss = 0
 	for epoch in range(epochs):
 
+		# yhat = xor_nn.forward(X)
 		yhat = xor_nn.forward(X)
 		loss = loss_fn(yhat, y)
 
@@ -77,7 +120,8 @@ def train(argv):
 
 		if epoch % 50 == 0:     
 		    print(f'Epoch: {epoch} completed, current Loss = {loss}')
-		    print(f'Last prediction: {yhat.tolist()}')
+		    # print(f'Last prediction: {yhat.tolist()}')
+		    print(f'Last prediction: {xor_nn.predict(X)}')
 
 	print(f'Training completed, total Loss = {total_loss}')
 
@@ -98,6 +142,7 @@ def main(args):
 
 	model = load(PATH)
 	n = int(args['n_samples'])
+
 	Xdata = np.random.rand(n, 2)
 	Xdata[0][0] = 0.
 	Xdata[-1][0] = 1.
@@ -108,14 +153,28 @@ def main(args):
 	yhat = yhat.detach().numpy()
 
 	if args['plot']:
-		xdata = X[:, 0]
+		xdata = 	X[:, 0]
 		ydata = X[:, 1]
 		zdata = yhat
 		fig = plt.figure()
 		ax = plt.axes(projection='3d')
-		ax.scatter3D(xdata, ydata, zdata, cmap='viridian')
-
+		ax.scatter3D(xdata, ydata, zdata, cmap='spring')
 		plt.show()
+		X = torch.Tensor([
+							[0.0, 0.0],
+							[0.0, 1.0],
+							[1.0, 0.0],
+							[1.0, 1.0],
+						])
+
+		y = torch.Tensor([
+							[0.0],
+							[1.0],
+							[1.0],
+							[0.0],
+						])		
+		plot_decision_boundary(model, X, y)
+
 
 	if args['train'] or args['save']:
 		save_training_data("data/xor_nn_data.tsv", X, yhat)
@@ -129,7 +188,7 @@ if __name__ == "__main__":
 	args.add_argument("-t", "--train", required=False,
 	   help="specify if we want to train the model or not")
 
-	args.add_argument("-n", "--n_samples", required=False,
+	args.add_argument("-n", "--n_samples", required=True,
 	   help="specify how many points to sample from the network")
 
 	args.add_argument("-p", "--plot", required=False, nargs='?', const=1,
@@ -138,7 +197,7 @@ if __name__ == "__main__":
 	args.add_argument("-f", "--file", required=True,
 	   help="where to save or load the model from")
 
-	args.add_argument("-s", "--save", required=True, nargs='?', const=1,
+	args.add_argument("-s", "--save", required=False, nargs='?', const=1,
 	   help="if you want to save training data")
 
 	args = vars(args.parse_args())

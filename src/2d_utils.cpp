@@ -2,6 +2,7 @@
 #include <vector>
 #include <iostream>
 #include "2d_utils.hpp"
+#include "lsfit.hpp"
 
 using namespace std;
 
@@ -75,6 +76,9 @@ vector<MatrixXd> partition_domain_2D(MatrixXd X, vector<int> segments) {
 
 	vector<MatrixXd> boundaries;
 	// boundaries: 1 point should be greater than boundary i and less than boundary i+1
+	MatrixXd zero(3, 1);
+	zero << 0, 1, 0;
+	boundaries.push_back(zero);
 	for (int i = 0; (unsigned int) i < segments.size(); i++){
 
 		MatrixXd p = X(segments[i], all);
@@ -90,26 +94,29 @@ vector<MatrixXd> partition_domain_2D(MatrixXd X, vector<int> segments) {
 			*/
 			MatrixXd p2 = X(segments[i-1], all);
 
-			MatrixXd q(2, 1);
-			MatrixXd q2(2, 1);
+			MatrixXd q(1, 2);
+			MatrixXd q2(1, 2);
 
-			// 0-th column is a bias column for regression
-			q << p(1), 1;
-			q2 << p2(1), 0;
+			q << 1, p(1);
+			q2 << 1, p2(1);
 
-			MatrixXd slope_vector = q - q2;
+			MatrixXd X(2, 2);
+			X << q, q2;
 
-			double slope = slope_vector(1)/slope_vector(0);
+			MatrixXd y(2, 1);
+			y << 1, 0;
+
+			LinearRegression lsqr = LinearRegression().fit(X, y);
+
 			MatrixXd line(3, 1);
-			double c = q(0) - q(1)*slope;
-		
 			// o_0 + o_1 x_1 + o_2 x_2
-			line << c, slope, 1;
+			line << -lsqr.weights, 1;
 			boundaries.push_back(line);
+
 		}
 
 		MatrixXd x_coord(3,1);
-		x_coord << p(1), 1, 0;
+		x_coord << -p(1), 1, 0;
 		boundaries.push_back(x_coord);
 
 	}

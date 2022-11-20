@@ -38,7 +38,7 @@ int main(int argc, char** argv){
 	
 	vector<MatrixXd> pieces;
 	vector<int> segments;
-	reconstruct_solution(X, y, pieces, segments, n, OPT, E, opt_segment);
+	vector<bool> simplex_id = reconstruct_solution(X, y, pieces, segments, n, OPT, E, opt_segment);
 
 	vector<MatrixXd> boundaries = partition_domain_2D(X, segments);
 
@@ -47,6 +47,6 @@ int main(int argc, char** argv){
 
 	delete[] E;
 
-	regression_to_pwl(pieces, boundaries, 5000);
+	regression_to_pwl(pieces, boundaries, simplex_id, 5000);
 	return 0;
 }
