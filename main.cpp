@@ -40,7 +40,11 @@ int main(int argc, char** argv){
 	vector<int> segments;
 	vector<bool> simplex_id = reconstruct_solution(X, y, pieces, segments, n, OPT, E, opt_segment);
 
+	cout << pieces.size() << endl;
 	vector<MatrixXd> boundaries = partition_domain_2D(X, segments);
+
+	for (int i = 0; i < pieces.size(); i++)
+		cout << pieces[i] << endl;
 
 	for (int i = 0; i < n+1; i++)
 		delete[] E[i];

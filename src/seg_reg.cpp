@@ -93,24 +93,28 @@ vector<bool> reconstruct_solution(MatrixXd X, MatrixXd y, vector<MatrixXd> &piec
 
 		i = segments_stack.top(); segments_stack.pop();
 		j = segments_stack.top(); segments_stack.pop();
+
+		cout << i << " " << j << endl;
 		start = i-1;
 		end = j-1;
 		MatrixXd piece = get_piece(X, y, start, end);
-
-		if (pieces.size() > 0) {
-			int start_ = last_j-1;
-			int end_ = i-1;
-			MatrixXd piece1 = simplex_segmentation_2D(pieces[pieces.size()-1], piece, X, y, start_, end_);
-			MatrixXd piece2 = simplex_segmentation_2D(pieces[pieces.size()-1], piece, X, y, end_, start_);
-			pieces.push_back(piece1);
-			pieces.push_back(piece2);
-			cout << "Simplex Segments from points " << last_j << " to " << i << endl;
-			// cout << "piece: " << piece1 << endl;
-			// cout << "piece: " << piece2 << endl;
-			segments.push_back(end_);
-			is_simplex.push_back(1);
-			is_simplex.push_back(1);
-		}
+		cout << X(start, all) << X(end, all) << endl;
+		// cout << piece << endl;
+		cout << endl;
+		// if (pieces.size() > 0) {
+		// 	int start_ = last_j-1;
+		// 	int end_ = i-1;
+		// 	MatrixXd piece1 = simplex_segmentation_2D(pieces[pieces.size()-1], piece, X, y, start_, end_);
+		// 	MatrixXd piece2 = simplex_segmentation_2D(pieces[pieces.size()-1], piece, X, y, end_, start_);
+		// 	pieces.push_back(piece1);
+		// 	pieces.push_back(piece2);
+		// 	cout << "Simplex Segments from points " << last_j << " to " << i << endl;
+		// 	// cout << "piece: " << piece1 << endl;
+		// 	// cout << "piece: " << piece2 << endl;
+		// 	segments.push_back(end_);
+		// 	is_simplex.push_back(1);
+		// 	is_simplex.push_back(1);
+		// }
 
 		pieces.push_back(piece);
 		segments.push_back(end);

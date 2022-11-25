@@ -3,12 +3,14 @@ import torch.nn as nn
 
 import numpy as np
 import pandas as pd
+from sklearn.linear_model import LinearRegression
 
 import matplotlib.pyplot as plt
 from mpl_toolkits import mplot3d
 
 import sys
 import argparse
+
 
 
 def plot_decision_boundary(model: torch.nn.Module, X: torch.Tensor, y: torch.Tensor):
@@ -36,7 +38,7 @@ def plot_decision_boundary(model: torch.nn.Module, X: torch.Tensor, y: torch.Ten
     if len(torch.unique(y)) > 2:
         y_pred = torch.softmax(y_logits, dim=1).argmax(dim=1)  # mutli-class
     else:
-        y_pred = torch.round(torch.sigmoid(y_logits))  # binary
+        y_pred = torch.round(y_logits)  # binary
 
     # Reshape preds and plot
     y_pred = y_pred.reshape(xx.shape).detach().numpy()
@@ -59,8 +61,12 @@ def print_np(arr):
 
 def save_training_data(path, X, y):
 
-	X = np.array(sorted(X, key=lambda x: x[0]))
-	y = np.array(sorted(y))
+	df = pd.DataFrame(X, columns=['x1', 'x2'])
+	df["y"] = y
+	df = df.sort_values(["x1", "y"])
+	X = np.array(df[['x1','x2']].values)
+	y = np.array(df['y'].values).reshape(-1, 1)
+
 	with open(path, 'w') as f:
 		f.write(str(X.shape[0]) + '\t' + str(X.shape[1]) + '\t' + str(y.shape[1]) + '\n')
 		for i in range(len(X)):
@@ -74,13 +80,14 @@ class XORNet(nn.Module):
 						nn.Linear(2, 2),
 						nn.Sigmoid(),
 						nn.Linear(2, 1),
+						nn.Sigmoid()
 						)
 
 	def forward(self, x):
 		return self.layers(x)
 
 	def predict(self, x):
-		return torch.round(torch.sigmoid(self.forward(x)))
+		return torch.round(self.forward(x))
 
 def train(argv):
 
@@ -142,12 +149,16 @@ def main(args):
 
 	model = load(PATH)
 	n = int(args['n_samples'])
-
+	# x1 = np.linspace(0, 1, int(np.sqrt(n)))
+	# x2 = np.linspace(0, 1, int(np.sqrt(n)))
+	# X1, X2 = np.meshgrid(x1, x2)
+	# Xdata = np.array([X1.flatten(), X2.flatten()]).T
 	Xdata = np.random.rand(n, 2)
 	Xdata[0][0] = 0.
 	Xdata[-1][0] = 1.
 	X = torch.Tensor(Xdata)
 	yhat = model.forward(X)
+
 
 	X = X.numpy()
 	yhat = yhat.detach().numpy()
@@ -177,7 +188,7 @@ def main(args):
 
 
 	if args['train'] or args['save']:
-		save_training_data("data/xor_nn_data.tsv", X, yhat)
+		save_training_data("../data/xor_nn_data.tsv", X, yhat)
 
 
 if __name__ == "__main__":
